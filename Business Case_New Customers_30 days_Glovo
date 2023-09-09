@@ -1,0 +1,12 @@
+WITH CustomerCounts AS (
+    SELECT 
+        COUNT(distinct customer_id) AS TotalCustomers,
+        SUM(CASE WHEN registration_date >= DATEADD(DAY, -30, GETDATE()) THEN 1 ELSE 0 END) AS RecentRegistrations
+    FROM Customers
+)
+
+SELECT 
+    TotalCustomers,
+    RecentRegistrations,
+    CAST(RecentRegistrations AS FLOAT) / CAST(TotalCustomers AS FLOAT) * 100 AS RegistrationPercentage
+FROM CustomerCounts;
