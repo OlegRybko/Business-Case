@@ -1,0 +1,32 @@
+WITH MonthlyData AS (
+        SELECT 
+        DATEPART(YEAR, order_date) AS order_year,
+        DATEPART(MONTH, order_date) AS order_month,
+        COUNT(DISTINCT order_id) AS number_of_orders,
+        SUM(total_amount) AS revenue,
+        SUM(quantity) / COUNT(DISTINCT order_id) AS avg_products_per_order
+    FROM Orders
+    GROUP BY DATEPART(YEAR, order_date), DATEPART(MONTH, order_date)
+)
+
+, MonthlyDynamics AS (
+    SELECT 
+        order_year,
+        order_month,
+        number_of_orders,
+        revenue,
+        avg_products_per_order,
+        LAG(number_of_orders) OVER (ORDER BY order_year, order_month) AS prev_month_orders,
+        number_of_orders - COALESCE(LAG(number_of_orders) OVER (ORDER BY order_year, order_month), 0) AS order_change_from_prev_month
+    FROM MonthlyData
+)
+
+SELECT 
+    order_year,
+    order_month,
+    number_of_orders,
+    revenue,
+    avg_products_per_order,
+    order_change_from_prev_month
+FROM MonthlyDynamics
+ORDER BY order_year, order_month;
